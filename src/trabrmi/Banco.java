@@ -2,6 +2,7 @@ package trabrmi;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import javafx.util.Pair;
 
 /*
  * To change this template, choose Tools | Templates
@@ -15,13 +16,13 @@ import java.rmi.RemoteException;
 public interface Banco extends Remote{
     public boolean conectaConta(int conta) throws RemoteException;
     
-    public int novaConta() throws RemoteException;
+    public int novaConta(int conta) throws RemoteException;
     
-    public double saque(double qtd) throws RemoteException;
+    public double saque(int conta, double qtd) throws RemoteException;
     
-    public double deposito(double qtd) throws RemoteException;
+    public double deposito(int conta, double qtd) throws RemoteException;
     
-    public double transfere(double qtd, int conta) throws RemoteException;
+    public double transfere(int contaOrigem, int contaDest, double qtd) throws RemoteException;
     
-    public double saldo() throws RemoteException;
+    public double saldo(int conta) throws RemoteException;
 }
