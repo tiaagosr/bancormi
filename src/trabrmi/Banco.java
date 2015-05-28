@@ -2,7 +2,6 @@ package trabrmi;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import javafx.util.Pair;
 
 /*
  * To change this template, choose Tools | Templates

@@ -20,9 +20,11 @@ import trabrmi.Banco;
 public class BancoServidor extends UnicastRemoteObject implements Banco{
 
     private HashMap<Integer, Conta> contas;
+    private InstanciaServidor servidor;
     
-    BancoServidor() throws RemoteException{
+    BancoServidor(InstanciaServidor servidor) throws RemoteException{
         this.contas = new HashMap<>();
+        this.servidor = servidor;
     }
     
     @Override
