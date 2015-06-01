@@ -14,11 +14,11 @@ import java.util.List;
 public interface RegistroNomes {
     public List<String> getServidores() throws RemoteException;
     
-    public void registraServidor(String endereco) throws RemoteException;
+    public int registraServidor(String endereco) throws RemoteException;
     
     public int novoMestre(int mestreAtual) throws RemoteException;
     
-    public int getMestreId() throws RemoteException;
+    public int getIdMestre() throws RemoteException;
     
-    public String getMestreEnd() throws RemoteException;
+    public String getEndMestre() throws RemoteException;
 }

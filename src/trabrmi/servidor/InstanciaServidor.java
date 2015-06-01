@@ -32,7 +32,7 @@ public class InstanciaServidor extends UnicastRemoteObject implements Runnable, 
     private RegistroNomes registro;
     private List<InstanciaServidor> servidores;
     private InstanciaServidor servidorMestre;
-    private int idMestre;
+    private int idMestre, idLocal;
     
     public InstanciaServidor(String endRegistro, String endLocal) throws RemoteException{
         this.endLocal = endLocal;
@@ -55,10 +55,12 @@ public class InstanciaServidor extends UnicastRemoteObject implements Runnable, 
     private void criaInstancia(String endRegistro) throws NotBoundException, MalformedURLException, RemoteException, IOException, ClassNotFoundException{
         //Cadastra-se no servidor de nomes
         registro = (RegistroNomes) Naming.lookup("//"+endRegistro+"/RegistroNomes");
-        String endMestre = this.registro.getMestreEnd();
+        String endMestre = this.registro.getEndMestre();
+        
         Naming.rebind("//"+endLocal+"/Instancia", this);
         Naming.rebind("//"+endLocal+"/Banco", this.dataBanco);
-        this.registro.registraServidor(this.endLocal);
+        
+        idLocal = this.registro.registraServidor(this.endLocal);
         if(endMestre != ""){
             this.sincronizarServidor();
         }
@@ -112,22 +114,51 @@ public class InstanciaServidor extends UnicastRemoteObject implements Runnable, 
         return this.dataBanco;
     }
     
-    public void setMestre(String mestre) throws RemoteException, NotBoundException, MalformedURLException{
-        this.servidorMestre = (InstanciaServidor) Naming.lookup("//"+mestre+"/Instancia");
-        System.out.println("Novo mestre: "+mestre);
+    public void setMestre(String mestreEnd, int mestreId) throws RemoteException, NotBoundException, MalformedURLException{
+        this.servidorMestre = (InstanciaServidor) Naming.lookup("//"+mestreEnd+"/Instancia");
+        this.idMestre = mestreId;
+        System.out.println("Novo mestre: "+mestreEnd);
+        
     }
 
+    private void substituiMestre(){
+        System.out.println("Servidor mestre inacessível, elegendo novo mestre");
+        int mestre = -1;
+        
+        try {
+            mestre = registro.novoMestre(this.idMestre);
+        } catch (RemoteException ex) {
+            System.out.println("Falha ao conectar no registro");
+        }
+        
+        if(mestre == this.idLocal){
+            System.out.println("EU SOU O NOVO MESTRE :D");
+            for(InstanciaServidor servidor: servidores){
+                try {
+                    servidor.setMestre(this.endLocal, this.idLocal);
+                } catch (RemoteException ex) {
+                    Logger.getLogger(InstanciaServidor.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (NotBoundException ex) {
+                    Logger.getLogger(InstanciaServidor.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (MalformedURLException ex) {
+                    Logger.getLogger(InstanciaServidor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+    
     @Override
     public void run() {
         while(true){
             try {
-                Thread.sleep(5000);
+                Thread.sleep(2000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(InstanciaServidor.class.getName()).log(Level.SEVERE, null, ex);
             }
             
             boolean mestreOff = false;
             
+            //Verifica se algum servidor está offline e remove-o da lista
             for(InstanciaServidor servidor: servidores){
                 try {
                     servidorMestre.isAlive();
@@ -140,28 +171,9 @@ public class InstanciaServidor extends UnicastRemoteObject implements Runnable, 
                 }
             }
             
+            //Se o servidor mestre foi removido da lista
             if(mestreOff == true){
-                System.out.println("Servidor mestre inacessível, elegendo novo mestre");
-                int mestre = -1;
-                try {
-                    mestre = registro.novoMestre(this.idMestre);
-                } catch (RemoteException ex) {
-                    Logger.getLogger(InstanciaServidor.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                if(mestre == this.endLocal){
-                    System.out.println("EU SOU O NOVO MESTRE :D");
-                    for(InstanciaServidor servidor: servidores){
-                        try {
-                            servidor.setMestre(this.endLocal);
-                        } catch (RemoteException ex) {
-                            Logger.getLogger(InstanciaServidor.class.getName()).log(Level.SEVERE, null, ex);
-                        } catch (NotBoundException ex) {
-                            Logger.getLogger(InstanciaServidor.class.getName()).log(Level.SEVERE, null, ex);
-                        } catch (MalformedURLException ex) {
-                            Logger.getLogger(InstanciaServidor.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }
+                this.substituiMestre();
             }
 
         }

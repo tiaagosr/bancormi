@@ -16,18 +16,17 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.util.Pair;
 import trabrmi.servidor.Instancia;
 
 /**
  *
  * @author tiagosr
  */
-public class RegistroNomesServidor extends UnicastRemoteObject implements RegistroNomes, Runnable{
+public class RegistroNomesServidor extends UnicastRemoteObject implements RegistroNomes{
 
     private TreeMap<Integer, String> servidores = new TreeMap<>();
-    private Integer mestreId;
-    private String mestreEnd = "", endLocal = "";
+    private Integer idMestre;
+    private String endMestre = "", endLocal = "";
     private Instancia mestre;
     
     public RegistroNomesServidor(String endLocal) throws RemoteException{
@@ -44,17 +43,26 @@ public class RegistroNomesServidor extends UnicastRemoteObject implements Regist
         return servidores.lastEntry().getValue();
     }
 
+
     @Override
-    public void registraServidor(String endereco) throws RemoteException{
-        servidores.put(servidores.lastKey()+1, endereco);
-        if(this.mestreId == -1){
+    public int registraServidor(String endereco) throws RemoteException{
+        int id = servidores.lastKey()+1;
+        servidores.put(id, endereco);
+        if(this.idMestre == -1){
             this.novoMestre(-1);
         }
+        
+        return id;
     }
 
     @Override
-    public int getMestreId() throws RemoteException{
-        return this.mestreId;
+    public int getIdMestre() throws RemoteException{
+        return this.idMestre;
+    }
+    
+    @Override
+    public String getEndMestre() throws RemoteException {
+        return this.endMestre;
     }
     
         @Override
@@ -62,8 +70,8 @@ public class RegistroNomesServidor extends UnicastRemoteObject implements Regist
         int mestreId = -1;
         String mestreEnd = "";
         
-        if(this.mestreId == mestreAtual){
-            this.servidores.remove(this.mestreId);
+        if(this.idMestre == mestreAtual){
+            this.servidores.remove(this.idMestre);
         }
         
         Entry<Integer, String> entrada = this.servidores.lastEntry();
@@ -72,20 +80,15 @@ public class RegistroNomesServidor extends UnicastRemoteObject implements Regist
             mestreEnd = entrada.getValue();
         }
         
-        this.mestreId = mestreId;
-        this.mestreEnd = mestreEnd;
+        this.idMestre = mestreId;
+        this.endMestre = mestreEnd;
         
         return mestreId;
     }
     
-    @Override
-    public String getMestreEnd() throws RemoteException {
-        
-    }
-    
     public void conectaMestre(){
         try {
-            this.mestre = (Instancia) Naming.lookup("//"+this.mestreEnd+"/Banco");
+            this.mestre = (Instancia) Naming.lookup("//"+this.endMestre+"/Banco");
             Naming.rebind("//"+endLocal+"/banco", mestre);
         } catch (MalformedURLException ex) {
             Logger.getLogger(RegistroNomesServidor.class.getName()).log(Level.SEVERE, null, ex);
@@ -94,11 +97,6 @@ public class RegistroNomesServidor extends UnicastRemoteObject implements Regist
         } catch (NotBoundException ex) {
             Logger.getLogger(RegistroNomesServidor.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-    
-    @Override
-    public void run() {
-
     }
     
 }
