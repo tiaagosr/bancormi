@@ -15,7 +15,7 @@ import java.rmi.RemoteException;
 public interface Banco extends Remote{
     public boolean conectaConta(int conta) throws RemoteException;
     
-    public int novaConta(int conta) throws RemoteException;
+    public int novaConta() throws RemoteException;
     
     public double saque(int conta, double qtd) throws RemoteException;
     
