@@ -57,7 +57,7 @@ public class RegistroNomesServidor extends UnicastRemoteObject implements Regist
         }
         
         servidores.put(id, endereco);
-        System.out.println("onde foi o exception?");
+
         if(this.idMestre == -1){
             this.novoMestre(-1);
         }

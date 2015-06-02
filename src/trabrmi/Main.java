@@ -28,16 +28,46 @@ public class Main {
         try {
             LocateRegistry.createRegistry(1099);
             RegistroNomesServidor reg = new RegistroNomesServidor("localhost");
-            InstanciaBancoServidor banco = new InstanciaBancoServidor("localhost", "localhost");
-            System.out.println("Conectando...");
+            
+            InstanciaBancoServidor banco = new InstanciaBancoServidor("localhost", "localhost/0");
+            Thread t = new Thread(banco);
+            t.start();
             Banco agencia = (Banco) Naming.lookup("//localhost/Bancos");
-            System.out.println("Conectou!");
+            
             agencia.novaConta(5);
             agencia.deposito(5, 200);
-            System.out.println("Saldo: "+agencia.saldo(5));
-            InstanciaBancoServidor banco2 = new InstanciaBancoServidor("localhost", "localhost/alt");
+            
+            InstanciaBancoServidor banco1 = new InstanciaBancoServidor("localhost", "localhost/1");
+            Thread t1 = new Thread(banco1);
+            t1.start();
+            
             agencia.novaConta(6);
-            System.out.println("meleca");
+            agencia.deposito(5, 200);
+            
+            InstanciaBancoServidor banco2 = new InstanciaBancoServidor("localhost", "localhost/2");
+            Thread t2 = new Thread(banco2);
+            t2.start();
+            
+            agencia.novaConta(8);
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            Naming.unbind("//localhost/0/Banco");
+            t.stop();
+            
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            Naming.unbind("//localhost/1/Banco");
+            t1.stop();
+            
+            System.out.println("FIM");
         } catch (NotBoundException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MalformedURLException ex) {

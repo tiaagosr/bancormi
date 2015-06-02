@@ -27,8 +27,8 @@ import trabrmi.RegistroNomes;
  * @author tiagosr
  */
 public class InstanciaBancoServidor extends UnicastRemoteObject implements Runnable, InstanciaBanco{
-    protected GerenciaContas dataBanco;
-    protected String endLocal;
+    public GerenciaContas dataBanco;
+    protected String endLocal, endMestre;
     protected RegistroNomes registro;
     protected List<InstanciaBanco> servidores;
     protected InstanciaBanco servidorMestre;
@@ -55,21 +55,19 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
     protected void criaInstancia(String endRegistro) throws NotBoundException, MalformedURLException, RemoteException, IOException, ClassNotFoundException{
         //Cadastra-se no servidor de nomes
         registro = (RegistroNomes) Naming.lookup("//"+endRegistro+"/RegistroNomes");
-        this.idMestre = this.registro.getIdMestre();
-        
         Naming.rebind("//"+endLocal+"/Banco", this);
-        
         idLocal = this.registro.registraServidor(this.endLocal);
-        this.conectaServidores(); //Cria proxy para os outros servidores
         
-        if(this.idMestre > -1 && idMestre != idLocal){ //Caso existir já existir servidor mestre online
-            System.out.println("Sincronizando!");
+        this.idMestre = this.registro.getIdMestre();
+        this.endMestre = this.registro.getEndMestre();
+        this.conectaServidores(); //Cria referencia para os outros servidores
+        
+        if(idMestre != idLocal){ //Caso já existir servidor mestre online
+            System.out.println("Sincronizando com outros servidores!");
             this.sincronizarServidor();
         }else{
             this.dataBanco = new GerenciaContas();
         }
-        
-        System.out.println("Contas: "+this.dataBanco.contaSize());
     }
     
     protected void conectaServidores() throws NotBoundException, MalformedURLException, RemoteException{
@@ -77,20 +75,32 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
         this.servidores = new ArrayList<>();
         
         for(String endServidor: endServidores){
-            this.conectaServidor(endServidor);
-        }
-    }
-    
-    public void conectaServidor(String endServidor) throws NotBoundException, MalformedURLException, RemoteException{
-        if(!endServidor.equals(endLocal)){
-            System.out.println("Server: //"+endServidor+"/Banco");
-            InstanciaBanco stump = (InstanciaBanco) Naming.lookup("//"+endServidor+"/Banco");
-            this.servidores.add(stump);
+            InstanciaBanco stump = this.conectaServidor(endServidor);
+            if(stump != null){
+                stump.conectaServidor(this.endLocal);
+                
+            }
         }
     }
     
     @Override
+    public InstanciaBanco conectaServidor(String endServidor) throws NotBoundException, MalformedURLException, RemoteException{
+        InstanciaBanco stump = null;
+        if(!endServidor.equals(endLocal)){
+            stump = (InstanciaBanco) Naming.lookup("//"+endServidor+"/Banco");
+            this.servidores.add(stump);
+            if(this.endMestre.equals(endServidor)){
+                this.servidorMestre = stump;
+            }
+        }
+        return stump;
+    }
+    
+    @Override
     public boolean isAlive() throws RemoteException{
+        if(this.idLocal%2 == 0){
+            return false;
+        }
         return true;
     }
     
@@ -105,7 +115,6 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
     
     protected void sincronizarServidor() throws IOException, ClassNotFoundException{
         Random genRandom = new Random();
-        System.out.println("Servidores: "+servidores.size());
         int servidorOrigem = genRandom.nextInt(servidores.size());
         
         byte[] clone = servidores.get(servidorOrigem).getBancoInstancia();
@@ -120,6 +129,7 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
         return this.dataBanco;
     }
     
+    @Override
     public void setMestre(String mestreEnd, int mestreId) throws RemoteException, NotBoundException, MalformedURLException{
         this.servidorMestre = (InstanciaBancoServidor) Naming.lookup("//"+mestreEnd+"/Banco");
         this.idMestre = mestreId;
@@ -160,13 +170,13 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
             } catch (InterruptedException ex) {
                 Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+            System.out.println("Verifica no "+this.endLocal+" t:"+servidores.size());
             boolean mestreOff = false;
             
             //Verifica se algum servidor está offline e remove-o da lista
             for(InstanciaBanco servidor: servidores){
                 try {
-                    servidorMestre.isAlive();
+                    System.out.println("resultado: "+servidor.isAlive());;
                 } catch (RemoteException ex) {
                     System.out.println("Servidor offline encontrado, removendo-o da lista");
                     if(servidor == servidorMestre){
@@ -185,27 +195,26 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
     }
 
     protected void replicaConta(int numeroConta) throws RemoteException {
-        System.out.println("Replicando conta!");
         for(InstanciaBanco servidor: servidores){
-            servidor.getBanco().novaConta(numeroConta);
+            servidor.novaConta(numeroConta);
         }
     }
 
     protected void replicaSaque(int conta, double qtd) throws RemoteException {
         for(InstanciaBanco servidor: servidores){
-            servidor.getBanco().saque(conta, qtd);
+            servidor.saque(conta, qtd);
         }
     }
 
     protected void replicaDeposito(int conta, double qtd) throws RemoteException {
         for(InstanciaBanco servidor: servidores){
-            servidor.getBanco().deposito(conta, qtd);
+            servidor.deposito(conta, qtd);
         }
     }
 
     protected void replicaTransfere(int contaOrigem, int contaDest, double qtd) throws RemoteException {
         for(InstanciaBanco servidor: servidores){
-            servidor.getBanco().transfere(contaOrigem, contaDest, qtd);
+            servidor.transfere(contaOrigem, contaDest, qtd);
         }
     }
 

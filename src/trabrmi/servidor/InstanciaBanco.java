@@ -24,4 +24,6 @@ public interface InstanciaBanco extends Banco{
     public byte[] getBancoInstancia() throws IOException, RemoteException;
 
     public void setMestre(String endLocal, int idLocal) throws RemoteException, NotBoundException, MalformedURLException;
+    
+    public InstanciaBanco conectaServidor(String endServidor) throws NotBoundException, MalformedURLException, RemoteException;
 }
