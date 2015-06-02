@@ -4,6 +4,7 @@
  */
 package trabrmi;
 
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
 
@@ -11,7 +12,7 @@ import java.util.List;
  *
  * @author udesc
  */
-public interface RegistroNomes {
+public interface RegistroNomes extends Remote{
     public List<String> getServidores() throws RemoteException;
     
     public int registraServidor(String endereco) throws RemoteException;

@@ -16,7 +16,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import trabrmi.servidor.Instancia;
+import trabrmi.servidor.InstanciaBanco;
 
 /**
  *
@@ -25,12 +25,17 @@ import trabrmi.servidor.Instancia;
 public class RegistroNomesServidor extends UnicastRemoteObject implements RegistroNomes{
 
     private TreeMap<Integer, String> servidores = new TreeMap<>();
-    private Integer idMestre;
+    private int idMestre = -1;
     private String endMestre = "", endLocal = "";
-    private Instancia mestre;
+    private InstanciaBanco mestre;
     
     public RegistroNomesServidor(String endLocal) throws RemoteException{
         this.endLocal = endLocal;
+        try {
+            Naming.rebind("//"+endLocal+"/RegistroNomes", this);
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(RegistroNomesServidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     
@@ -46,8 +51,13 @@ public class RegistroNomesServidor extends UnicastRemoteObject implements Regist
 
     @Override
     public int registraServidor(String endereco) throws RemoteException{
-        int id = servidores.lastKey()+1;
+        int id = 0;
+        if(servidores.size() > 0){
+            id = servidores.lastKey()+1;
+        }
+        
         servidores.put(id, endereco);
+        System.out.println("onde foi o exception?");
         if(this.idMestre == -1){
             this.novoMestre(-1);
         }
@@ -83,13 +93,15 @@ public class RegistroNomesServidor extends UnicastRemoteObject implements Regist
         this.idMestre = mestreId;
         this.endMestre = mestreEnd;
         
+        this.conectaMestre();
+        
         return mestreId;
     }
     
     public void conectaMestre(){
         try {
-            this.mestre = (Instancia) Naming.lookup("//"+this.endMestre+"/Banco");
-            Naming.rebind("//"+endLocal+"/banco", mestre);
+            this.mestre = (InstanciaBanco) Naming.lookup("//"+this.endMestre+"/Banco");
+            Naming.rebind("//"+endLocal+"/Bancos", mestre);
         } catch (MalformedURLException ex) {
             Logger.getLogger(RegistroNomesServidor.class.getName()).log(Level.SEVERE, null, ex);
         } catch (RemoteException ex) {

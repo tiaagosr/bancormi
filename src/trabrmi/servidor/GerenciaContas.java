@@ -10,27 +10,27 @@ package trabrmi.servidor;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.TreeMap;
-import trabrmi.Banco;
 
 /**
  *
  * @author udesc
  */
-public class BancoServidor extends UnicastRemoteObject implements Banco, Serializable{
+public class GerenciaContas implements Serializable{
 
     private TreeMap<Integer, Conta> contas = new TreeMap<>();
     
-    BancoServidor() throws RemoteException{
+    GerenciaContas() throws RemoteException{
     }
     
-    @Override
+    public int contaSize(){
+        return contas.size();
+    }
+    
     public boolean conectaConta(int conta) throws RemoteException {        
         return contas.containsKey(conta);
     }
 
-    @Override
     public int novaConta(int numeroConta) throws RemoteException {
         Conta tmpConta = new Conta(numeroConta);
         contas.put(numeroConta, tmpConta);
@@ -38,19 +38,16 @@ public class BancoServidor extends UnicastRemoteObject implements Banco, Seriali
         return numeroConta;        
     }
 
-    @Override
     public double saque(int conta, double qtd) throws RemoteException {
        Conta tmpConta = contas.get(conta);
        return tmpConta.subSaldo(qtd);
     }
 
-    @Override
     public double deposito(int conta, double qtd) throws RemoteException {
         Conta tmpConta = contas.get(conta);
         return tmpConta.addSaldo(qtd);
     }
 
-    @Override
     public double transfere(int contaOrigem, int contaDest, double qtd) throws RemoteException {
         Conta tmpOrigem = contas.get(contaOrigem);
         Conta tmpDest = contas.get(contaDest);
@@ -68,7 +65,6 @@ public class BancoServidor extends UnicastRemoteObject implements Banco, Seriali
         return saldoOrigem;
     }
 
-    @Override
     public double saldo(int conta) throws RemoteException {
         Conta tmpConta = contas.get(conta);
         
