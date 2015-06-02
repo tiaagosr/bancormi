@@ -63,6 +63,8 @@ public class InstanciaServidor extends UnicastRemoteObject implements Runnable, 
         idLocal = this.registro.registraServidor(this.endLocal);
         if(endMestre != ""){
             this.sincronizarServidor();
+        }else{
+            this.dataBanco = new BancoServidor();
         }
         
         this.conectaServidores();
@@ -122,13 +124,12 @@ public class InstanciaServidor extends UnicastRemoteObject implements Runnable, 
     }
 
     private void substituiMestre(){
-        System.out.println("Servidor mestre inacessível, elegendo novo mestre");
         int mestre = -1;
         
         try {
             mestre = registro.novoMestre(this.idMestre);
         } catch (RemoteException ex) {
-            System.out.println("Falha ao conectar no registro");
+            System.out.println("Falha ao conectar-se com o registro");
         }
         
         if(mestre == this.idLocal){
@@ -151,7 +152,7 @@ public class InstanciaServidor extends UnicastRemoteObject implements Runnable, 
     public void run() {
         while(true){
             try {
-                Thread.sleep(2000);
+                Thread.sleep(5000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(InstanciaServidor.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -173,11 +174,46 @@ public class InstanciaServidor extends UnicastRemoteObject implements Runnable, 
             
             //Se o servidor mestre foi removido da lista
             if(mestreOff == true){
+                System.out.println("Servidor mestre inacessível, elegendo novo mestre");
                 this.substituiMestre();
             }
+        }   
+    }
 
-        }
+    @Override
+    public void replicaConta(int numeroConta) throws RemoteException {
+        this.getBanco().novaConta(numeroConta);
         
+        for(InstanciaServidor servidor: servidores){
+            servidor.getBanco().novaConta(numeroConta);
+        }
+    }
+
+    @Override
+    public void replicaSaque(int conta, double qtd) throws RemoteException {
+        this.getBanco().saque(conta, qtd);
+        
+        for(InstanciaServidor servidor: servidores){
+            servidor.getBanco().saque(conta, qtd);
+        }
+    }
+
+    @Override
+    public void replicaDeposito(int conta, double qtd) throws RemoteException {
+        this.getBanco().deposito(conta, qtd);
+        
+        for(InstanciaServidor servidor: servidores){
+            servidor.getBanco().deposito(conta, qtd);
+        }
+    }
+
+    @Override
+    public void replicaTransfere(int contaOrigem, int contaDest, double qtd) throws RemoteException {
+        this.getBanco().transfere(contaOrigem, contaDest, qtd);
+        
+        for(InstanciaServidor servidor: servidores){
+            servidor.getBanco().transfere(contaOrigem, contaDest, qtd);
+        }
     }
     
 }

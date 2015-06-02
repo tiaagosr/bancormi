@@ -14,7 +14,18 @@ import java.rmi.RemoteException;
  * @author tiagosr
  */
 public interface Instancia extends Remote{
+    
     public boolean isAlive() throws RemoteException;
+    
     public BancoServidor getBanco() throws RemoteException;
+    
     public byte[] getBancoInstancia() throws IOException, RemoteException;
+    
+    public void replicaConta(int numeroConta) throws RemoteException;
+    
+    public void replicaSaque(int conta, double qtd) throws RemoteException;
+    
+    public void replicaDeposito(int conta, double qtd) throws RemoteException;
+    
+    public void replicaTransfere(int contaOrigem, int contaDest, double qtd) throws RemoteException;
 }

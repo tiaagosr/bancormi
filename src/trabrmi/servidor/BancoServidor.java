@@ -11,7 +11,6 @@ package trabrmi.servidor;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.HashMap;
 import java.util.TreeMap;
 import trabrmi.Banco;
 
@@ -22,10 +21,8 @@ import trabrmi.Banco;
 public class BancoServidor extends UnicastRemoteObject implements Banco, Serializable{
 
     private TreeMap<Integer, Conta> contas = new TreeMap<>();
-    private InstanciaServidor servidor;
     
-    BancoServidor(InstanciaServidor servidor) throws RemoteException{
-        this.servidor = servidor;
+    BancoServidor() throws RemoteException{
     }
     
     @Override
@@ -34,8 +31,7 @@ public class BancoServidor extends UnicastRemoteObject implements Banco, Seriali
     }
 
     @Override
-    public int novaConta() throws RemoteException {
-        int numeroConta = contas.lastKey()+1;
+    public int novaConta(int numeroConta) throws RemoteException {
         Conta tmpConta = new Conta(numeroConta);
         contas.put(numeroConta, tmpConta);
         
