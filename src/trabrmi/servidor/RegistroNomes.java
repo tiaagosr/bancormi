@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package trabrmi;
+package trabrmi.servidor;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -15,7 +15,7 @@ import java.util.List;
 public interface RegistroNomes extends Remote{
     public List<String> getServidores() throws RemoteException;
     
-    public int registraServidor(String endereco) throws RemoteException;
+    public int registrarServidor(String endereco) throws RemoteException;
     
     public int novoMestre(int mestreAtual) throws RemoteException;
     

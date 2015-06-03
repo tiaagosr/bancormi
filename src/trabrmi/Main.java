@@ -4,6 +4,7 @@
  */
 package trabrmi;
 
+import trabrmi.servidor.RegistroNomesServidor;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -24,7 +25,10 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-
+        
+        FrmInicial inicio = new FrmInicial();
+        inicio.setVisible(true);
+        /*
         try {
             LocateRegistry.createRegistry(1099);
             RegistroNomesServidor reg = new RegistroNomesServidor("localhost");
@@ -74,6 +78,6 @@ public class Main {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         } catch (RemoteException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }*/
     }
 }

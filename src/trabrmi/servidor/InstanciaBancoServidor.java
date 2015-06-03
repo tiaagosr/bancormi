@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import trabrmi.RegistroNomes;
 
 /**
  *
@@ -38,7 +37,7 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
         this.endLocal = endLocal;
         
         try {
-            this.criaInstancia(endRegistro);
+            this.iniciaInstancia(endRegistro);
         } catch (NotBoundException ex) {
             Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MalformedURLException ex) {
@@ -52,19 +51,20 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
         }
     }
     
-    protected void criaInstancia(String endRegistro) throws NotBoundException, MalformedURLException, RemoteException, IOException, ClassNotFoundException{
+    protected void iniciaInstancia(String endRegistro) throws NotBoundException, MalformedURLException, RemoteException, IOException, ClassNotFoundException{
         //Cadastra-se no servidor de nomes
         registro = (RegistroNomes) Naming.lookup("//"+endRegistro+"/RegistroNomes");
         Naming.rebind("//"+endLocal+"/Banco", this);
-        idLocal = this.registro.registraServidor(this.endLocal);
+        idLocal = this.registro.registrarServidor(this.endLocal);
         
         this.idMestre = this.registro.getIdMestre();
         this.endMestre = this.registro.getEndMestre();
-        this.conectaServidores(); //Cria referencia para os outros servidores
+        //Cria referencia para os outros servidores
+        this.conectaServidores(); 
         
         if(idMestre != idLocal){ //Caso já existir servidor mestre online
             System.out.println("Sincronizando com outros servidores!");
-            this.sincronizarServidor();
+            this.dataBanco = this.copiarDadosServidor();
         }else{
             this.dataBanco = new GerenciaContas();
         }
@@ -113,7 +113,7 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
         return bos.toByteArray();
     }
     
-    protected void sincronizarServidor() throws IOException, ClassNotFoundException{
+    protected GerenciaContas copiarDadosServidor() throws IOException, ClassNotFoundException{
         Random genRandom = new Random();
         int servidorOrigem = genRandom.nextInt(servidores.size());
         
@@ -121,7 +121,7 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
         ByteArrayInputStream bis = new ByteArrayInputStream(clone);
         ObjectInputStream ois = new ObjectInputStream(bis);
         
-        this.dataBanco = (GerenciaContas) ois.readObject();
+         return (GerenciaContas) ois.readObject();
     }
     
     @Override
@@ -130,23 +130,24 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
     }
     
     @Override
-    public void setMestre(String mestreEnd, int mestreId) throws RemoteException, NotBoundException, MalformedURLException{
-        this.servidorMestre = (InstanciaBancoServidor) Naming.lookup("//"+mestreEnd+"/Banco");
-        this.idMestre = mestreId;
-        System.out.println("Novo mestre: "+mestreEnd);
+    public void setMestre(String endMestre, int idMestre) throws RemoteException, NotBoundException, MalformedURLException{
+        this.servidorMestre = (InstanciaBancoServidor) Naming.lookup("//"+endMestre+"/Banco");
+        this.endMestre = endMestre;
+        this.idMestre = idMestre;
+        System.out.println("Novo mestre: "+endMestre);
         
     }
 
-    protected void substituiMestre(){
-        int mestre = -1;
+    protected void substituirMestre(){
+        int idNovoMestre = -1;
         
         try {
-            mestre = registro.novoMestre(this.idMestre);
+            idNovoMestre = registro.novoMestre(this.idMestre);
         } catch (RemoteException ex) {
             System.out.println("Falha ao conectar-se com o registro");
         }
         
-        if(mestre == this.idLocal){
+        if(idNovoMestre == this.idLocal){
             System.out.println("EU SOU O NOVO MESTRE :D");
             for(InstanciaBanco servidor: servidores){
                 try {
@@ -187,9 +188,9 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
             }
             
             //Se o servidor mestre foi removido da lista
-            if(mestreOff == true){
+            if(mestreOff){
                 System.out.println("Servidor mestre inacessível, elegendo novo mestre");
-                this.substituiMestre();
+                this.substituirMestre();
             }
         }   
     }

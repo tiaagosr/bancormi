@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package trabrmi;
+package trabrmi.servidor;
 
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -50,7 +50,7 @@ public class RegistroNomesServidor extends UnicastRemoteObject implements Regist
 
 
     @Override
-    public int registraServidor(String endereco) throws RemoteException{
+    public int registrarServidor(String endereco) throws RemoteException{
         int id = 0;
         if(servidores.size() > 0){
             id = servidores.lastKey()+1;

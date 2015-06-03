@@ -32,7 +32,9 @@ public class GerenciaContas implements Serializable{
     }
 
     public int novaConta(int numeroConta) throws RemoteException {
-        
+        if(contas.containsKey(numeroConta)){
+            return -1;
+        }
         Conta tmpConta = new Conta(numeroConta);
         contas.put(numeroConta, tmpConta);
         return numeroConta;        
