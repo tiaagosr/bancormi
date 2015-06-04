@@ -28,9 +28,9 @@ public class FrmBancoCliente extends javax.swing.JFrame {
         try {
             conexao = (Banco) Naming.lookup("//"+enderecoRegistro+"/Bancos");
         } catch (NotBoundException ex) {
-            Logger.getLogger(FrmBancoCliente.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Servidor de registro offline!");
         } catch (MalformedURLException ex) {
-            Logger.getLogger(FrmBancoCliente.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Endereço IP fornecido inválido!");
         } catch (RemoteException ex) {
             Logger.getLogger(FrmBancoCliente.class.getName()).log(Level.SEVERE, null, ex);
         }

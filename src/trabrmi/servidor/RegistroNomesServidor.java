@@ -42,11 +42,6 @@ public class RegistroNomesServidor extends UnicastRemoteObject implements Regist
     public List<String> getServidores() throws RemoteException{
         return new ArrayList<>(servidores.values());
     }
-    
-    public String getMaiorServidor() throws RemoteException{
-        return servidores.lastEntry().getValue();
-    }
-
 
     @Override
     public int registrarServidor(String endereco) throws RemoteException{
@@ -106,18 +101,6 @@ public class RegistroNomesServidor extends UnicastRemoteObject implements Regist
         } catch (RemoteException ex) {
             Logger.getLogger(RegistroNomesServidor.class.getName()).log(Level.SEVERE, null, ex);
         } catch (NotBoundException ex) {
-            Logger.getLogger(RegistroNomesServidor.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    public void encerrar(){
-        try {
-            Naming.unbind("//"+endLocal+"/RegistroNomes");
-        } catch (RemoteException ex) {
-            Logger.getLogger(RegistroNomesServidor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NotBoundException ex) {
-            Logger.getLogger(RegistroNomesServidor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MalformedURLException ex) {
             Logger.getLogger(RegistroNomesServidor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

@@ -41,11 +41,11 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
         } catch (NotBoundException ex) {
             Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MalformedURLException ex) {
-            Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Endereco IP fornecido inválido!");
         } catch (RemoteException ex) {
             Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Ocorreu um erro durante a sincronização do servidor!");
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -55,17 +55,16 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
         //Cadastra-se no servidor de nomes
         registro = (RegistroNomes) Naming.lookup("//"+endRegistro+"/RegistroNomes");
         Naming.rebind("//"+endLocal+"/Banco", this);
-        System.out.println("ID:"+registro.getIdMestre());
         
-        idLocal = this.registro.registrarServidor(this.endLocal);
-        
+        this.idLocal = this.registro.registrarServidor(this.endLocal);
+        System.out.println("Servidor registrado com id "+this.idLocal);
         this.idMestre = this.registro.getIdMestre();
         this.endMestre = this.registro.getEndMestre();
         //Cria referencia para os outros servidores
         this.conectaServidores(); 
         
-        if(idMestre != idLocal){ //Caso já existir servidor mestre online
-            System.out.println("Sincronizando com outros servidores!");
+        if(!this.isMestre()){ //Caso já existir outro servidor mestre online
+            System.out.println("Sincronizando com outro servidor!");
             this.dataBanco = this.copiarDadosServidor();
         }else{
             this.dataBanco = new GerenciaContas();
@@ -112,6 +111,7 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
         return bos.toByteArray();
     }
     
+    //Procura um servidor aleatório e sincroniza com ele
     protected GerenciaContas copiarDadosServidor() throws IOException, ClassNotFoundException{
         Random genRandom = new Random();
         int servidorOrigem = genRandom.nextInt(servidores.size());
@@ -120,7 +120,7 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
         ByteArrayInputStream bis = new ByteArrayInputStream(clone);
         ObjectInputStream ois = new ObjectInputStream(bis);
         
-         return (GerenciaContas) ois.readObject();
+        return (GerenciaContas) ois.readObject();
     }
     
     @Override
@@ -166,7 +166,7 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
     public void run() {
         while(true){
             try {
-                Thread.sleep(5000);
+                Thread.sleep(3000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -239,7 +239,7 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
     public double saque(int conta, double qtd) throws RemoteException {
         double resultado = this.getBanco().saque(conta, qtd);
         
-        if(this.idMestre == this.idLocal){
+        if(this.isMestre()){
             this.replicaSaque(conta, qtd);
         }
         return resultado;
@@ -249,7 +249,7 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
     public double deposito(int conta, double qtd) throws RemoteException {
         double resultado = this.getBanco().deposito(conta, qtd);
         
-        if(this.idMestre == this.idLocal){
+        if(this.isMestre()){
             this.replicaDeposito(conta, qtd);
         }
         return resultado;
@@ -259,7 +259,7 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
     public double transfere(int contaOrigem, int contaDest, double qtd) throws RemoteException {
         double resultado = this.getBanco().transfere(contaOrigem, contaDest, qtd);
         
-        if(this.idMestre == this.idLocal){
+        if(this.isMestre()){
             this.replicaTransfere(contaOrigem, contaDest, qtd);
         }
         return resultado;
@@ -270,16 +270,7 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
         return this.getBanco().saldo(conta);
     }
     
-    public void encerrar(){
-        try {
-            Naming.unbind("//"+endLocal+"/Banco");
-        } catch (RemoteException ex) {
-            Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NotBoundException ex) {
-            Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    private boolean isMestre(){
+        return (this.idMestre > -1 && this.idLocal == this.idMestre);
     }
-    
 }
