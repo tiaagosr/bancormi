@@ -100,9 +100,6 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
     
     @Override
     public boolean isAlive() throws RemoteException{
-        if(this.idLocal%2 == 0){
-            return false;
-        }
         return true;
     }
     
@@ -173,14 +170,14 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
             } catch (InterruptedException ex) {
                 Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
             }
-            System.out.println("Verifica no "+this.endLocal+" t:"+servidores.size());
+            System.out.println("Verificando no "+this.endLocal+" os "+servidores.size()+" servidores");
             boolean mestreOff = false;
             
             //Verifica se algum servidor está offline e remove-o da lista
             for(int i=0;i < servidores.size();i++){
                 InstanciaBanco servidor = servidores.get(i);
                 try {
-                    System.out.println("resultado: "+servidor.isAlive());;
+                    servidor.isAlive();
                 } catch (RemoteException ex) {
                     System.out.println("Servidor offline encontrado, removendo-o da lista");
                     if(servidor == servidorMestre){
@@ -271,6 +268,18 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
     @Override
     public double saldo(int conta) throws RemoteException {
         return this.getBanco().saldo(conta);
+    }
+    
+    public void encerrar(){
+        try {
+            Naming.unbind("//"+endLocal+"/Banco");
+        } catch (RemoteException ex) {
+            Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NotBoundException ex) {
+            Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(InstanciaBancoServidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
 }

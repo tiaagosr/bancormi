@@ -110,4 +110,16 @@ public class RegistroNomesServidor extends UnicastRemoteObject implements Regist
         }
     }
     
+    public void encerrar(){
+        try {
+            Naming.unbind("//"+endLocal+"/RegistroNomes");
+        } catch (RemoteException ex) {
+            Logger.getLogger(RegistroNomesServidor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NotBoundException ex) {
+            Logger.getLogger(RegistroNomesServidor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(RegistroNomesServidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
 }

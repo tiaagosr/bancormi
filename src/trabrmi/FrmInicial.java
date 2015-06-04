@@ -46,6 +46,8 @@ public class FrmInicial extends javax.swing.JFrame {
         txtDestino = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         btnCancelar = new javax.swing.JButton();
+        labelOrigem1 = new javax.swing.JLabel();
+        txtPorta = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("SDI - Tela Inicial");
@@ -101,6 +103,10 @@ public class FrmInicial extends javax.swing.JFrame {
             }
         });
 
+        labelOrigem1.setText("Porta:");
+
+        txtPorta.setText("1099");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -108,12 +114,9 @@ public class FrmInicial extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtPorta, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1)
-                    .addComponent(labelOrigem)
                     .addComponent(labelDestino)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(txtDestino, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(txtOrigem, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE))
                     .addComponent(jLabel3)
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
@@ -125,8 +128,13 @@ public class FrmInicial extends javax.swing.JFrame {
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                             .addComponent(radioServidor)
                             .addGap(18, 18, 18)
-                            .addComponent(radioRegistro))))
-                .addContainerGap(32, Short.MAX_VALUE))
+                            .addComponent(radioRegistro)))
+                    .addComponent(labelOrigem)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(txtDestino, javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(txtOrigem, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE))
+                    .addComponent(labelOrigem1))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -140,7 +148,11 @@ public class FrmInicial extends javax.swing.JFrame {
                     .addComponent(radioRegistro))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3)
-                .addGap(16, 16, 16)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
+                .addComponent(labelOrigem1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtPorta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addComponent(labelOrigem)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtOrigem, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -160,6 +172,14 @@ public class FrmInicial extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private String getDestino(){
+        return this.txtDestino.getText()+":"+this.txtPorta.getText();
+    }
+    
+    private String getOrigem(){
+        return this.txtOrigem.getText()+":"+this.txtPorta.getText();
+    }
+    
     private void radioServidorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioServidorActionPerformed
         this.defineModo(MODO_SERVIDOR);
     }//GEN-LAST:event_radioServidorActionPerformed
@@ -173,24 +193,24 @@ public class FrmInicial extends javax.swing.JFrame {
     }//GEN-LAST:event_radioRegistroActionPerformed
 
     private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
-        this.dispose();
+        System.exit(0);
     }//GEN-LAST:event_btnCancelarActionPerformed
 
     private void btnIniciarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIniciarActionPerformed
         ButtonModel selecao = this.groupModo.getSelection();
         if(selecao == this.radioCliente.getModel()){
-            FrmBancoCliente janela = new FrmBancoCliente(this.txtDestino.getText());
+            FrmBancoCliente janela = new FrmBancoCliente(this.getOrigem());
             janela.setVisible(true);
         }
         
         if(selecao == this.radioServidor.getModel()){
-            FrmServidor servidor = new FrmServidor(MODO_SERVIDOR, this.txtDestino.getText(), this.txtOrigem.getText());
+            FrmServidor servidor = new FrmServidor(MODO_SERVIDOR, this.getDestino(), this.getOrigem(), Integer.valueOf(this.txtPorta.getText()));
             servidor.setVisible(true);
             //Criar Instancia dos servidores
         }
         
         if(selecao == this.radioRegistro.getModel()){
-            FrmServidor servidor = new FrmServidor(MODO_REGISTRO, this.txtDestino.getText(), this.txtOrigem.getText());
+            FrmServidor servidor = new FrmServidor(MODO_REGISTRO, this.getDestino(), this.getOrigem(), Integer.valueOf(this.txtPorta.getText()));
             servidor.setVisible(true);
         }
         
@@ -223,10 +243,12 @@ public class FrmInicial extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel labelDestino;
     private javax.swing.JLabel labelOrigem;
+    private javax.swing.JLabel labelOrigem1;
     private javax.swing.JRadioButton radioCliente;
     private javax.swing.JRadioButton radioRegistro;
     private javax.swing.JRadioButton radioServidor;
     private javax.swing.JTextField txtDestino;
     private javax.swing.JTextField txtOrigem;
+    private javax.swing.JTextField txtPorta;
     // End of variables declaration//GEN-END:variables
 }
