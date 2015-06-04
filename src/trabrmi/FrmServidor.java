@@ -5,17 +5,49 @@
  */
 package trabrmi;
 
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import trabrmi.servidor.InstanciaBancoServidor;
+import trabrmi.servidor.RegistroNomesServidor;
+
 /**
  *
  * @author tiagosr
  */
 public class FrmServidor extends javax.swing.JFrame {
-
+    private final int MODO_SERVIDOR = 2, MODO_REGISTRO = 3;
+    private RegistroNomesServidor registroNomes;
+    private InstanciaBancoServidor instanciaBanco;
+    private Thread threadServidor;
     /**
      * Creates new form FrmServidor
      */
-    public FrmServidor(String nome) {
+    public FrmServidor(int modo, String endRegistro, String endLocal) {
+        String nome = "Um erro";
+        
         initComponents();
+        
+        try {
+            LocateRegistry.createRegistry(1099);
+            System.setProperty("java.rmi.server.hostname", "endLocal");
+            switch(modo){
+                case MODO_SERVIDOR:
+                    nome = "Servidor";
+                    instanciaBanco = new InstanciaBancoServidor(endRegistro, endLocal);
+                    threadServidor = new Thread(instanciaBanco);
+                    threadServidor.start();
+                break;
+                case MODO_REGISTRO:
+                    nome = "Servidor de registro";
+                    registroNomes = new RegistroNomesServidor(endLocal);
+                break;
+            }  
+        } catch (RemoteException ex) {
+            Logger.getLogger(FrmServidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         this.labelAviso.setText(nome+" em execução!");
     }
 
@@ -67,7 +99,7 @@ public class FrmServidor extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnFecharActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFecharActionPerformed
-        // TODO add your handling code here:
+        this.dispose();
     }//GEN-LAST:event_btnFecharActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

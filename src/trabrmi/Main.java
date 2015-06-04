@@ -25,59 +25,35 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        
-        FrmInicial inicio = new FrmInicial();
-        inicio.setVisible(true);
         /*
+        FrmInicial inicio = new FrmInicial();
+        inicio.setVisible(true);*/
+        
         try {
             LocateRegistry.createRegistry(1099);
-            RegistroNomesServidor reg = new RegistroNomesServidor("localhost");
+            System.setProperty("java.rmi.server.hostname", "10.20.128.34");
             
-            InstanciaBancoServidor banco = new InstanciaBancoServidor("localhost", "localhost/0");
-            Thread t = new Thread(banco);
-            t.start();
-            Banco agencia = (Banco) Naming.lookup("//localhost/Bancos");
+            String endereco = "10.20.128.35:1099";
+            
+            //Externo
+            InstanciaBancoServidor banco1 = new InstanciaBancoServidor(endereco, "10.20.128.34");
+            Thread t1 = new Thread(banco1);
+            t1.start();
+            
+            Banco agencia = (Banco) Naming.lookup("//"+endereco+"/Bancos");
             
             agencia.novaConta(5);
             agencia.deposito(5, 200);
             
-            InstanciaBancoServidor banco1 = new InstanciaBancoServidor("localhost", "localhost/1");
-            Thread t1 = new Thread(banco1);
-            t1.start();
-            
             agencia.novaConta(6);
             agencia.deposito(5, 200);
-            
-            InstanciaBancoServidor banco2 = new InstanciaBancoServidor("localhost", "localhost/2");
-            Thread t2 = new Thread(banco2);
-            t2.start();
-            
             agencia.novaConta(8);
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            Naming.unbind("//localhost/0/Banco");
-            t.stop();
-            
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            Naming.unbind("//localhost/1/Banco");
-            t1.stop();
-            
-            System.out.println("FIM");
         } catch (NotBoundException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MalformedURLException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         } catch (RemoteException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
+        }
     }
 }

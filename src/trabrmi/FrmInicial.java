@@ -23,6 +23,7 @@ public class FrmInicial extends javax.swing.JFrame {
     public FrmInicial() {
         initComponents();
         this.groupModo.setSelected(this.radioCliente.getModel(), true);
+        this.defineModo(MODO_CLIENTE);
     }
 
     /**
@@ -183,13 +184,13 @@ public class FrmInicial extends javax.swing.JFrame {
         }
         
         if(selecao == this.radioServidor.getModel()){
-            FrmServidor servidor = new FrmServidor("Servidor");
+            FrmServidor servidor = new FrmServidor(MODO_SERVIDOR, this.txtDestino.getText(), this.txtOrigem.getText());
             servidor.setVisible(true);
             //Criar Instancia dos servidores
         }
         
         if(selecao == this.radioRegistro.getModel()){
-            FrmServidor servidor = new FrmServidor("Servidor de registro");
+            FrmServidor servidor = new FrmServidor(MODO_REGISTRO, this.txtDestino.getText(), this.txtOrigem.getText());
             servidor.setVisible(true);
         }
         

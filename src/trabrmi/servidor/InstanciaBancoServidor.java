@@ -55,6 +55,8 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
         //Cadastra-se no servidor de nomes
         registro = (RegistroNomes) Naming.lookup("//"+endRegistro+"/RegistroNomes");
         Naming.rebind("//"+endLocal+"/Banco", this);
+        System.out.println("ID:"+registro.getIdMestre());
+        
         idLocal = this.registro.registrarServidor(this.endLocal);
         
         this.idMestre = this.registro.getIdMestre();
@@ -175,7 +177,8 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
             boolean mestreOff = false;
             
             //Verifica se algum servidor está offline e remove-o da lista
-            for(InstanciaBanco servidor: servidores){
+            for(int i=0;i < servidores.size();i++){
+                InstanciaBanco servidor = servidores.get(i);
                 try {
                     System.out.println("resultado: "+servidor.isAlive());;
                 } catch (RemoteException ex) {
@@ -183,7 +186,7 @@ public class InstanciaBancoServidor extends UnicastRemoteObject implements Runna
                     if(servidor == servidorMestre){
                         mestreOff = true;
                     }
-                    servidores.remove(servidor);
+                    servidores.remove(i);
                 }
             }
             
